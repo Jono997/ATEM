@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 
 /// <summary>
 /// ATEM (All The Extension Methods) is a C# class library containing a number of extension methods that
@@ -9,7 +10,10 @@ using System.Linq;
 /// </summary>
 namespace ATEM
 {
-    public static partial class ATEM
+    /// <summary>
+    /// A class containing all of the methods in ATEM
+    /// </summary>
+    public static partial class ATEMMethods
     {
         #region Array methods
         // Some of these extension methods may also be usable on List objects
@@ -272,9 +276,126 @@ namespace ATEM
 
         #region Int methods
         #region Invert
+        /// <summary>
+        /// returns the number of equal and opposite distance of this from axis
+        /// </summary>
+        /// <param name="axis">The number to invert around</param>
+        /// <returns></returns>
         public static int Invert(this int integer, int axis)
         {
             return (integer - axis) * -1 + axis;
+        }
+        #endregion
+        #endregion
+
+        #region ATEM methods
+        // These methods are not extension methods for another class, but are instead, methods that I, again, find useful and write again and again.
+        // There's no commonality between any of these methods, but I'll do my best to keep them all organised.
+
+        /// <summary>
+        /// Specifies what applicable Overload:ATEMMethods.CopyDirectory overloads should do in the event of destFolderName already existing
+        /// </summary>
+        [Flags]
+        public enum FolderExistsResponse {
+            /// <summary>
+            /// An instance of the IOException class is thrown
+            /// </summary>
+            Reject,
+            /// <summary>
+            /// The two directories' contents will be merged into destFolderName.
+            /// If both directories have a file of the same name, the one in sourceFolderName will be discarded.
+            /// </summary>
+            MergeKeep,
+            /// <summary>
+            /// The two directories' contents will be merged into destFolderName.
+            /// If both directories have a file of the same name, the one in sourceFolderName will overwrite the one already in destFolderName.
+            /// </summary>
+            MergeOverwrite
+        };
+
+        /// <summary>
+        /// Copies an existing directory and its contents to a new directory.
+        /// All exceptions this can throw are exceptions thrown by System.IO.File.Copy and System.IO.Directory.CreateDirectory
+        /// </summary>
+        /// <param name="sourceFolderName">The directory to copy</param>
+        /// <param name="destFolderName">The name of the destination directory. This cannot be an existing directory.</param>
+        /// <param name="folderExistsResponse">The method by which destFolderName already existing is handled</param>
+        /// <param name="copySubdirectories">If true, sourceFolderName's subdirectories and their subdirectories are also copied.</param>
+        public static void CopyDirectory(string sourceFolderName, string destFolderName, FolderExistsResponse folderExistsResponse, bool copySubdirectories)
+        {
+            if (Directory.Exists(destFolderName))
+            {
+                switch (folderExistsResponse)
+                {
+                    case FolderExistsResponse.Reject:
+                        throw new IOException('"' + destFolderName + "\" already exists");
+                    default:
+                        break;
+                }
+            }
+            else
+            {
+                Directory.CreateDirectory(destFolderName);
+            }
+
+            foreach(string file in Directory.GetFiles(sourceFolderName))
+            {
+                string filename = file.Split('\\').GetFromLast(0);
+                string new_path = destFolderName + '\\' + filename;
+                if (File.Exists(new_path))
+                {
+                    if (folderExistsResponse == FolderExistsResponse.MergeKeep)
+                        continue;
+                    else
+                        File.Delete(new_path);
+                }
+                File.Copy(file, new_path);
+            }
+
+            if (copySubdirectories)
+            {
+                foreach (string subdir in Directory.GetDirectories(sourceFolderName))
+                {
+                    string dirname = subdir.Split('\\').GetFromLast(0);
+                    CopyDirectory(sourceFolderName + '\\' + dirname, destFolderName + '\\' + dirname, folderExistsResponse, true);
+                }
+            }
+        }
+
+        #region Overloads
+        /// <summary>
+        /// Copies an existing directory and its contents to a new directory.
+        /// All exceptions this can throw are exceptions thrown by System.IO.File.Copy and System.IO.Directory.CreateDirectory
+        /// </summary>
+        /// <param name="sourceFolderName">The directory to copy</param>
+        /// <param name="destFolderName">The name of the destination directory. This cannot be an existing directory.</param>
+        /// <param name="folderExistsResponse">The method by which destFolderName already existing is handled</param>
+        public static void CopyDirectory(string sourceFolderName, string destFolderName, FolderExistsResponse folderExistsResponse)
+        {
+            CopyDirectory(sourceFolderName, destFolderName, folderExistsResponse, false);
+        }
+
+        /// <summary>
+        /// Copies an existing directory and its contents to a new directory.
+        /// All exceptions this can throw are exceptions thrown by System.IO.File.Copy and System.IO.Directory.CreateDirectory
+        /// </summary>
+        /// <param name="sourceFolderName">The directory to copy</param>
+        /// <param name="destFolderName">The name of the destination directory. This cannot be an existing directory.</param>
+        public static void CopyDirectory(string sourceFolderName, string destFolderName)
+        {
+            CopyDirectory(sourceFolderName, destFolderName, FolderExistsResponse.Reject, false);
+        }
+
+        /// <summary>
+        /// Copies an existing directory and its contents to a new directory.
+        /// All exceptions this can throw are exceptions thrown by System.IO.File.Copy and System.IO.Directory.CreateDirectory
+        /// </summary>
+        /// <param name="sourceFolderName">The directory to copy</param>
+        /// <param name="destFolderName">The name of the destination directory. This cannot be an existing directory.</param>
+        /// <param name="copySubdirectories">If true, sourceFolderName's subdirectories and their subdirectories are also copied.</param>
+        public static void CopyDirectory(string sourceFolderName, string destFolderName, bool copySubdirectories)
+        {
+            CopyDirectory(sourceFolderName, destFolderName, FolderExistsResponse.Reject, copySubdirectories);
         }
         #endregion
         #endregion
