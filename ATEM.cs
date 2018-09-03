@@ -7,6 +7,8 @@ using System.IO;
 /// ATEM (All The Extension Methods) is a C# class library containing a number of extension methods that
 /// I personally find really useful and find myself writing into nearly every project I make, so I decided
 /// to release them for people to hopefully make good use of.
+/// 
+/// Do note that there are some... interesting methods in here, but they may be of use.
 /// </summary>
 namespace ATEM
 {
@@ -188,7 +190,7 @@ namespace ATEM
         /// </summary>
         /// <param name="index">The position in the array you want to get from, counting from the last element in the array. The last element is 0.</param>
         /// <returns>The requested item in the array</returns>
-        public static T GetFromLast<T> (this T[] array, int index)
+        public static T GetFromLast<T>(this T[] array, int index)
         {
             return array[array.Length - index - 1];
         }
@@ -202,7 +204,7 @@ namespace ATEM
         /// <param name="index">The position in the array you want to get from, counting from the last element in the array. The last element is 0.</param>
         /// <param name="value">The value to set the index position to.</param>
         /// <returns>value</returns>
-        public static T SetFromLast<T> (this T[] array, int index, T value)
+        public static T SetFromLast<T>(this T[] array, int index, T value)
         {
             array[array.Length - index - 1] = value;
             return value;
@@ -216,7 +218,7 @@ namespace ATEM
         /// </summary>
         /// <param name="index">The position in the array you want to get from, counting from the last element in the array. The last element is 0.</param>
         /// <returns>The requested item in the array</returns>
-        public static T GetFromLast<T> (this List<T> list, int index)
+        public static T GetFromLast<T>(this List<T> list, int index)
         {
             return list[list.Count - index - 1];
         }
@@ -230,7 +232,7 @@ namespace ATEM
         /// <param name="index">The position in the array you want to get from, counting from the last element in the array. The last element is 0.</param>
         /// <param name="value">The value to set the index position to.</param>
         /// <returns>value</returns>
-        public static T SetFromLast<T> (this List<T> list, int index, T value)
+        public static T SetFromLast<T>(this List<T> list, int index, T value)
         {
             list[list.Count - index - 1] = value;
             return value;
@@ -288,10 +290,81 @@ namespace ATEM
         #endregion
         #endregion
 
+        #region Dictionary serialisation
+        #region Class definition
+    }
+
+    /// <summary>
+    /// A class that stores all the information in a Dictionary in a much less usable, but serialisable format.
+    /// </summary>
+    public partial class SerializableDictionary<TKey, TValue>
+    {
+        /// <summary>
+        /// An array storing all the keys in the Dictionary
+        /// </summary>
+        public TKey[] Keys { get; set; }
+
+        /// <summary>
+        /// An array storing all the values in the Dictionary
+        /// </summary>
+        public TValue[] Values { get; set; }
+
+        /// <summary>
+        /// Constructs an instance of the SerializableDictionary class
+        /// </summary>
+        public SerializableDictionary()
+        {
+            Keys = new TKey[] { };
+            Values = new TValue[] { };
+        }
+
+        /// <summary>
+        /// Converts to a Dictionary
+        /// </summary>
+        /// <returns>The resutling Dictionary</returns>
+        public Dictionary<TKey, TValue> ToDictioary()
+        {
+            Dictionary<TKey, TValue> result = new Dictionary<TKey, TValue>();
+            for (int i = 0; i < Keys.Length; i++)
+            {
+                result.Add(Keys[i], Values[i]);
+            }
+            return result;
+        }
+    }
+
+    public static partial class ATEMMethods {
+        #endregion
+
+        #region Dictionary.ToSerializableIDictionary
+        /// <summary>
+        /// Converts to a SerializableDictionary object
+        /// </summary>
+        /// <returns>The resulting SerializableDictionary</returns>
+        public static SerializableDictionary<TKey, TValue> ToSerializableDictionary<TKey, TValue> (this Dictionary<TKey, TValue> idictionary)
+        {
+            SerializableDictionary<TKey, TValue> result = new SerializableDictionary<TKey, TValue>();
+            List<TKey> keys = new List<TKey>();
+            List<TValue> values = new List<TValue>();
+
+            foreach (TKey key in idictionary.Keys)
+            {
+                keys.Add(key);
+                values.Add(idictionary[key]);
+            }
+
+            result.Keys = keys.ToArray();
+            result.Values = values.ToArray();
+            return result;
+        }
+        #endregion
+        #endregion
+
         #region ATEM methods
         // These methods are not extension methods for another class, but are instead, methods that I, again, find useful and write again and again.
         // There's no commonality between any of these methods, but I'll do my best to keep them all organised.
 
+        #region CopyDirectory
         /// <summary>
         /// Specifies what applicable Overload:ATEMMethods.CopyDirectory overloads should do in the event of destFolderName already existing
         /// </summary>
@@ -397,6 +470,7 @@ namespace ATEM
         {
             CopyDirectory(sourceFolderName, destFolderName, FolderExistsResponse.Reject, copySubdirectories);
         }
+        #endregion
         #endregion
         #endregion
     }
