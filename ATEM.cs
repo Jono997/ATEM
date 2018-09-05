@@ -295,27 +295,74 @@ namespace ATEM
     }
 
     /// <summary>
-    /// A class that stores all the information in a Dictionary in a much less usable, but serialisable format.
+    /// A class that stores all the information in a Dictionary in a much less usable/optimised, but serialisable format.
     /// </summary>
     public partial class SerializableDictionary<TKey, TValue>
     {
         /// <summary>
         /// An array storing all the keys in the Dictionary
         /// </summary>
-        public TKey[] Keys { get; set; }
+        public List<TKey> Keys { get; set; }
 
         /// <summary>
         /// An array storing all the values in the Dictionary
         /// </summary>
-        public TValue[] Values { get; set; }
+        public List<TValue> Values { get; set; }
+
+        #region [] operator
+        /// <summary>
+        /// Gets or sets the value associated with the specified key.
+        /// </summary>
+        /// <param name="key">The key of the value to get or set.</param>
+        /// <returns>The value associated with the specified key. If the specified key is not found,
+        /// a get operation throws a System.Collections.Generic.KeyNotFoundException, and
+        /// a set operation creates a new element with the specified key (I know SerializableDictionary doesn't use a collection, but shut up).</returns>
+        /// <exception cref="KeyNotFoundException">The Keys array does not contain key</exception>
+        public TValue this[TKey key]
+        {
+            get
+            {
+                if (Keys.Contains(key))
+                    for (int i = 0; i < Keys.Count; i++)
+                    {
+                        if (Keys[i].Equals(key))
+                            return Values[i];
+                    }
+                throw new KeyNotFoundException();
+            }
+
+            set
+            {
+                if (Keys.Contains(key))
+                {
+                    for (int i = 0; i < Keys.Count; i++)
+                        if (Keys[i].Equals(key))
+                            Values[i] = value;
+                }
+                else
+                    Add(key, value);
+            }
+        }
+        #endregion
+
+        /// <summary>
+        /// Gets the number of key/value pairs contained in the ATEM.SerializableDictionary
+        /// </summary>
+        public int Count
+        {
+            get
+            {
+                return Keys.Count;
+            }
+        }
 
         /// <summary>
         /// Constructs an instance of the SerializableDictionary class
         /// </summary>
         public SerializableDictionary()
         {
-            Keys = new TKey[] { };
-            Values = new TValue[] { };
+            Keys = new List<TKey>();
+            Values = new List<TValue>();
         }
 
         /// <summary>
@@ -325,18 +372,72 @@ namespace ATEM
         public Dictionary<TKey, TValue> ToDictioary()
         {
             Dictionary<TKey, TValue> result = new Dictionary<TKey, TValue>();
-            for (int i = 0; i < Keys.Length; i++)
+            for (int i = 0; i < Keys.Count; i++)
             {
                 result.Add(Keys[i], Values[i]);
             }
             return result;
+        }
+
+        /// <summary>
+        /// Adds the specified key and value to the dictionary.
+        /// </summary>
+        /// <param name="key">The key of the element to add.</param>
+        /// <param name="value">The value of the element to add. The value can be null for reference types.</param>
+        /// <exception cref="ArgumentNullException">key is null.</exception>
+        /// <exception cref="ArgumentException">An element with the same key already exists in the ATEM.SerializableDictionary</exception>
+        public void Add(TKey key, TValue value)
+        {
+            if (key.Equals(null))
+                throw new ArgumentNullException("key is null");
+            else if (Keys.Contains(key))
+                throw new ArgumentException(key.ToString() + "is already a key");
+            else
+            {
+                Keys.Add(key);
+                Values.Add(value);
+            }
+        }
+
+        /// <summary>
+        /// Removes all keys and values from the ATEM.SerializableDictionary.
+        /// </summary>
+        public void Clear()
+        {
+            Keys.Clear();
+            Values.Clear();
+        }
+
+        /// <summary>
+        /// Removes the value with the specified key from the ATEM.SerializableDictionary.
+        /// </summary>
+        /// <param name="key">The key of the element to remove</param>
+        /// <returns>true if the element is successfully found and removed; otherwise, false. This
+        /// method return false if the key is not found in Keys.</returns>
+        /// <exception cref="ArgumentNullException">key is null.</exception>
+        public bool Remove(TKey key)
+        {
+            if (key.Equals(null))
+                throw new ArgumentNullException();
+            else
+            {
+                if (Keys.Contains(key))
+                {
+                    Values.RemoveAt(Keys.IndexOf(key));
+                    return Keys.Remove(key);
+                }
+                else
+                {
+                    return false;
+                }
+            }
         }
     }
 
     public static partial class ATEMMethods {
         #endregion
 
-        #region Dictionary.ToSerializableIDictionary
+        #region Dictionary.ToSerializableDictionary
         /// <summary>
         /// Converts to a SerializableDictionary object
         /// </summary>
@@ -353,8 +454,8 @@ namespace ATEM
                 values.Add(idictionary[key]);
             }
 
-            result.Keys = keys.ToArray();
-            result.Values = values.ToArray();
+            result.Keys = keys;
+            result.Values = values;
             return result;
         }
         #endregion

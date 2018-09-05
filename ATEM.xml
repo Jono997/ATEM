@@ -233,7 +233,7 @@
         </member>
         <member name="T:ATEM.SerializableDictionary`2">
             <summary>
-            A class that stores all the information in a Dictionary in a much less usable, but serialisable format.
+            A class that stores all the information in a Dictionary in a much less usable/optimised, but serialisable format.
             </summary>
         </member>
         <member name="P:ATEM.SerializableDictionary`2.Keys">
@@ -246,6 +246,21 @@
             An array storing all the values in the Dictionary
             </summary>
         </member>
+        <member name="P:ATEM.SerializableDictionary`2.Item(`0)">
+            <summary>
+            Gets or sets the value associated with the specified key.
+            </summary>
+            <param name="key">The key of the value to get or set.</param>
+            <returns>The value associated with the specified key. If the specified key is not found,
+            a get operation throws a System.Collections.Generic.KeyNotFoundException, and
+            a set operation creates a new element with the specified key (I know SerializableDictionary doesn't use a collection, but shut up).</returns>
+            <exception cref="T:System.Collections.Generic.KeyNotFoundException">The Keys array does not contain key</exception>
+        </member>
+        <member name="P:ATEM.SerializableDictionary`2.Count">
+            <summary>
+            Gets the number of key/value pairs contained in the ATEM.SerializableDictionary
+            </summary>
+        </member>
         <member name="M:ATEM.SerializableDictionary`2.#ctor">
             <summary>
             Constructs an instance of the SerializableDictionary class
@@ -256,6 +271,29 @@
             Converts to a Dictionary
             </summary>
             <returns>The resutling Dictionary</returns>
+        </member>
+        <member name="M:ATEM.SerializableDictionary`2.Add(`0,`1)">
+            <summary>
+            Adds the specified key and value to the dictionary.
+            </summary>
+            <param name="key">The key of the element to add.</param>
+            <param name="value">The value of the element to add. The value can be null for reference types.</param>
+            <exception cref="T:System.ArgumentNullException">key is null.</exception>
+            <exception cref="T:System.ArgumentException">An element with the same key already exists in the ATEM.SerializableDictionary</exception>
+        </member>
+        <member name="M:ATEM.SerializableDictionary`2.Clear">
+            <summary>
+            Removes all keys and values from the ATEM.SerializableDictionary.
+            </summary>
+        </member>
+        <member name="M:ATEM.SerializableDictionary`2.Remove(`0)">
+            <summary>
+            Removes the value with the specified key from the ATEM.SerializableDictionary.
+            </summary>
+            <param name="key">The key of the element to remove</param>
+            <returns>true if the element is successfully found and removed; otherwise, false. This
+            method return false if the key is not found in Keys.</returns>
+            <exception cref="T:System.ArgumentNullException">key is null.</exception>
         </member>
     </members>
 </doc>
