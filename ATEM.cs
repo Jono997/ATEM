@@ -103,7 +103,7 @@ namespace ATEM
         /// Retrieves a subarray from this instance. This subarray starts at a specified
         /// element position and has a specified length
         /// </summary>
-        /// <param name="index">The zero-based starting element position of a subarray in this instance</param>
+        /// <param name="startIndex">The zero-based starting element position of a subarray in this instance</param>
         /// <param name="length">The number of elements in the subarray</param>
         /// <returns>An array that is equivalent to the subarray of length length that begins at
         /// startIndex in this instance.</returns>
@@ -139,7 +139,7 @@ namespace ATEM
         /// Retrieves a subarray from this instance. This subarray starts at a specified
         /// element position and continues to the end of the array
         /// </summary>
-        /// <param name="index">The zero-based starting element position of a subarray in this instance</param>
+        /// <param name="startIndex">The zero-based starting element position of a subarray in this instance</param>
         /// <returns>An array that is equivalent to the subarray that begins at startIndex in this
         /// instance, or new object[] { } if startIndex is equal to the length of this
         /// instance</returns>
@@ -236,6 +236,46 @@ namespace ATEM
         {
             list[list.Count - index - 1] = value;
             return value;
+        }
+        #endregion
+        #endregion
+
+        #region Swap
+        /// <summary>
+        /// Swaps the position of two elements in the array
+        /// </summary>
+        /// <param name="index1">The index position of the first element in the array to swap</param>
+        /// <param name="index2">The index position of the second element in the array to swap</param>
+        /// <exception cref="IndexOutOfRangeException">One of the indexes was larger than the length of the array.</exception>
+        public static void Swap<T>(this T[] array, int index1, int index2)
+        {
+            if (index1 >= array.Length || index2 >= array.Length)
+                throw new IndexOutOfRangeException("One of the indexes is greater than or equal to the length of the array");
+            else if (index1 != index2)
+            {
+                T twoplaceholder = array[index2];
+                array[index2] = array[index1];
+                array[index1] = twoplaceholder;
+            }
+        }
+
+        #region Overloads
+        /// <summary>
+        /// Swaps the position of two elements in the list
+        /// </summary>
+        /// <param name="index1">The index position of the first element in the list to swap</param>
+        /// <param name="index2">The index position of the second element in the list to swap</param>
+        /// <exception cref="IndexOutOfRangeException">One of the indexes was larger than the count of the list</exception>
+        public static void Swap<T>(this List<T> list, int index1, int index2)
+        {
+            if (index1 >= list.Count || index2 >= list.Count)
+                throw new IndexOutOfRangeException("One of the indexes is greather than or equal to the count of the list");
+            else if (index1 != index2)
+            {
+                T twoplaceholder = list[index2];
+                list[index2] = list[index1];
+                list[index1] = twoplaceholder;
+            }
         }
         #endregion
         #endregion

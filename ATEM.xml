@@ -54,7 +54,7 @@
             Retrieves a subarray from this instance. This subarray starts at a specified
             element position and has a specified length
             </summary>
-            <param name="index">The zero-based starting element position of a subarray in this instance</param>
+            <param name="startIndex">The zero-based starting element position of a subarray in this instance</param>
             <param name="length">The number of elements in the subarray</param>
             <returns>An array that is equivalent to the subarray of length length that begins at
             startIndex in this instance.</returns>
@@ -66,7 +66,7 @@
             Retrieves a subarray from this instance. This subarray starts at a specified
             element position and continues to the end of the array
             </summary>
-            <param name="index">The zero-based starting element position of a subarray in this instance</param>
+            <param name="startIndex">The zero-based starting element position of a subarray in this instance</param>
             <returns>An array that is equivalent to the subarray that begins at startIndex in this
             instance, or new object[] { } if startIndex is equal to the length of this
             instance</returns>
@@ -134,6 +134,22 @@
             <param name="index">The position in the array you want to get from, counting from the last element in the array. The last element is 0.</param>
             <param name="value">The value to set the index position to.</param>
             <returns>value</returns>
+        </member>
+        <member name="M:ATEM.ATEMMethods.Swap``1(``0[],System.Int32,System.Int32)">
+            <summary>
+            Swaps the position of two elements in the array
+            </summary>
+            <param name="index1">The index position of the first element in the array to swap</param>
+            <param name="index2">The index position of the second element in the array to swap</param>
+            <exception cref="T:System.IndexOutOfRangeException">One of the indexes was larger than the length of the array.</exception>
+        </member>
+        <member name="M:ATEM.ATEMMethods.Swap``1(System.Collections.Generic.List{``0},System.Int32,System.Int32)">
+            <summary>
+            Swaps the position of two elements in the list
+            </summary>
+            <param name="index1">The index position of the first element in the list to swap</param>
+            <param name="index2">The index position of the second element in the list to swap</param>
+            <exception cref="T:System.IndexOutOfRangeException">One of the indexes was larger than the count of the list</exception>
         </member>
         <member name="M:ATEM.ATEMMethods.Split(System.String,System.String[])">
             <summary>
