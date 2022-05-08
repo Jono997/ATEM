@@ -176,6 +176,51 @@
             <exception cref="T:System.ArgumentOutOfRangeException">count is negative.</exception>
             <exception cref="T:System.ArgumentException">options is not one of the System.StringSplitOptions values.</exception>
         </member>
+        <member name="M:ATEM.ATEMMethods.MathParse(System.String,System.Collections.Generic.IDictionary{System.String,System.Double},System.Text.RegularExpressions.Regex)">
+            <summary>
+            Parses a string as a mathematical formula and returns the result<br />
+            Supported operations (executed in this order):<br />
+            Variable substitution<br />
+            Nested expressions ()<br />
+            Exponents ^<br />
+            Multiplication and division * and /<br />
+            Addition and subtraction + and -<br />
+            </summary>
+            <param name="formula">The expression to execute</param>
+            <param name="variables">Variables that might/will be in the formula</param>
+            <param name="variable_regex">A regex for finding variables in the formula</param>
+            <returns>The result of the formula, with the variables substituted in</returns>
+            <exception cref="T:ATEM.MissingVariableException">Raised when one or more variables in formula don't have a corresponding key in variables</exception>
+        </member>
+        <member name="M:ATEM.ATEMMethods.MathParse(System.String,System.Collections.Generic.IDictionary{System.String,System.Double})">
+            <summary>
+            Parses a string as a mathematical formula and returns the result<br />
+            Supported operations (executed in this order):<br />
+            Variable substitution<br />
+            Nested expressions ()<br />
+            Exponents ^<br />
+            Multiplication and division * and /<br />
+            Addition and subtraction + and -<br />
+            </summary>
+            <param name="formula">The expression to execute</param>
+            <param name="variables">Variables that might/will be in the formula</param>
+            <returns>The result of the formula, with the variables substituted in</returns>
+            <exception cref="T:ATEM.MissingVariableException">Raised when one or more variables in formula don't have a corresponding key in variables</exception>
+        </member>
+        <member name="M:ATEM.ATEMMethods.MathParse(System.String)">
+            <summary>
+            Parses a string as a mathematical formula and returns the result<br />
+            Supported operations (executed in this order):<br />
+            Variable substitution<br />
+            Nested expressions ()<br />
+            Exponents ^<br />
+            Multiplication and division * and /<br />
+            Addition and subtraction + and -<br />
+            </summary>
+            <param name="formula">The expression to execute</param>
+            <returns>The result of the formula, with the variables substituted in</returns>
+            <exception cref="T:ATEM.MissingVariableException">Raised when one or more variables is in the formula</exception>
+        </member>
         <member name="M:ATEM.ATEMMethods.Invert(System.Int32,System.Int32)">
             <summary>
             returns the number of equal and opposite distance of this from axis
@@ -246,6 +291,11 @@
             <param name="sourceFolderName">The directory to copy</param>
             <param name="destFolderName">The name of the destination directory. This cannot be an existing directory.</param>
             <param name="copySubdirectories">If true, sourceFolderName's subdirectories and their subdirectories are also copied.</param>
+        </member>
+        <member name="T:ATEM.MissingVariableException">
+            <summary>
+            Represents an error in ATEMMethods.ParseStringAsMath when one or more variables are int the formula string, but don't have a corresponding entry in the variables IDictionary
+            </summary>
         </member>
         <member name="T:ATEM.SerializableDictionary`2">
             <summary>

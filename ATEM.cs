@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.IO;
+using System.Text.RegularExpressions;
 
 /// <summary>
 /// ATEM (All The Extension Methods) is a C# class library containing a number of extension methods that
@@ -115,10 +116,12 @@ namespace ATEM
             if (startIndex < 0)
             {
                 throw new ArgumentOutOfRangeException("startIndex", "startIndex is less than zero");
-            } else if (length < 0)
+            }
+            else if (length < 0)
             {
                 throw new ArgumentOutOfRangeException("length", "length is less than zero");
-            } else if (startIndex + length > array.Length)
+            }
+            else if (startIndex + length > array.Length)
             {
                 throw new ArgumentOutOfRangeException("startIndex plus length indicates a position not within this instance");
             }
@@ -314,6 +317,183 @@ namespace ATEM
             return str.Split(separator, count, StringSplitOptions.None);
         }
         #endregion
+
+        #region Parse string as math formula
+        // NOTE: This method is not fit for most real world cases due to how slow it is, and is only here for a proof of concept
+        /// <summary>
+        /// Parses a string as a mathematical formula and returns the result<br />
+        /// Supported operations (executed in this order):<br />
+        /// Variable substitution<br />
+        /// Nested expressions ()<br />
+        /// Exponents ^<br />
+        /// Multiplication and division * and /<br />
+        /// Addition and subtraction + and -<br />
+        /// </summary>
+        /// <param name="formula">The expression to execute</param>
+        /// <param name="variables">Variables that might/will be in the formula</param>
+        /// <param name="variable_regex">A regex for finding variables in the formula</param>
+        /// <returns>The result of the formula, with the variables substituted in</returns>
+        /// <exception cref="MissingVariableException">Raised when one or more variables in formula don't have a corresponding key in variables</exception>
+        public static double MathParse(this string formula, IDictionary<string, double> variables, Regex variable_regex)
+        {
+            #region Replace variables
+            List<string> missing_variables = new List<string>();
+            while (true)
+            {
+                Match match = variable_regex.Match(formula);
+                if (!match.Success)
+                    break;
+                string variable = match.Groups[1].Value;
+                if (variables != null && variables.ContainsKey(variable))
+                    formula = $"{formula.Substring(0, match.Index)}{variables[variable]}{formula.Substring(match.Index + match.Value.Length)}";
+                else
+                    missing_variables.Add(variable);
+            }
+            if (missing_variables.Count > 0)
+            {
+                string missing_variables_message = missing_variables[0];
+                for (int i = 1; i < missing_variables.Count; i++)
+                    missing_variables_message += $", {missing_variables[i]}";
+                throw new MissingVariableException($"Variables were present in the formula that weren't found in the variables dictionary\nMissing variables: {missing_variables_message}");
+            }
+            #endregion
+
+            // Strip whitespace
+            formula = formula.Replace(" ", "");
+
+            #region Execute brackets
+            Regex bracket_regex = new Regex(@"(\(.+?\))");
+            while (true)
+            {
+                Match match = bracket_regex.Match(formula);
+                if (!match.Success)
+                    break;
+                string subformula = match.Groups[1].Value;
+                subformula = subformula.Substring(1, subformula.Length - 2);
+                formula = $"{formula.Substring(0, match.Index)}{ParseStringAsMath(subformula)}{formula.Substring(match.Index + match.Value.Length)}";
+            }
+            #endregion
+
+            #region Exponents
+            Regex exponent_regex = new Regex(@"(\d+(?:\.\d+)?)\^(\d+(?:\.\d+)?)");
+            while (true)
+            {
+                Match match = exponent_regex.Match(formula);
+                if (!match.Success)
+                    break;
+                double num = Convert.ToDouble(match.Groups[1].Value);
+                double exponent = Convert.ToDouble(match.Groups[2].Value);
+                formula = $"{formula.Substring(0, match.Index)}{Math.Pow(num, exponent)}{formula.Substring(match.Index + match.Value.Length)}";
+            }
+            #endregion
+
+            #region Multiplication/Division
+            Regex multi_div_regex = new Regex(@"(\d+(?:\.\d+)?)([*\/])(\d+(?:\.\d+)?)");
+            while (true)
+            {
+                Match match = multi_div_regex.Match(formula);
+                if (!match.Success)
+                    break;
+                double num_1 = Convert.ToDouble(match.Groups[1].Value);
+                double num_2 = Convert.ToDouble(match.Groups[3].Value);
+                double result = 0;
+                switch (match.Groups[2].Value[0])
+                {
+                    case '*':
+                        result = num_1 * num_2;
+                        break;
+                    case '/':
+                        result = num_1 / num_2;
+                        break;
+                }
+                formula = $"{formula.Substring(0, match.Index)}{result}{formula.Substring(match.Index + match.Value.Length)}";
+            }
+            #endregion
+
+            #region Addition/Subtraction
+            Regex add_sub_regex = new Regex(@"(\d+(?:\.\d+)?)([+-])(\d+(?:\.\d+)?)");
+            while (true)
+            {
+                Match match = add_sub_regex.Match(formula);
+                if (!match.Success)
+                    break;
+                double num_1 = Convert.ToDouble(match.Groups[1].Value);
+                double num_2 = Convert.ToDouble(match.Groups[3].Value);
+                double result = 0;
+                switch (match.Groups[2].Value[0])
+                {
+                    case '+':
+                        result = num_1 + num_2;
+                        break;
+                    case '-':
+                        result = num_1 - num_2;
+                        break;
+                }
+                formula = $"{formula.Substring(0, match.Index)}{result}{formula.Substring(match.Index + match.Value.Length)}";
+            }
+            #endregion
+
+            return Convert.ToDouble(formula);
+        }
+
+        #region Overloads
+        /// <summary>
+        /// Parses a string as a mathematical formula and returns the result<br />
+        /// Supported operations (executed in this order):<br />
+        /// Variable substitution<br />
+        /// Nested expressions ()<br />
+        /// Exponents ^<br />
+        /// Multiplication and division * and /<br />
+        /// Addition and subtraction + and -<br />
+        /// </summary>
+        /// <param name="formula">The expression to execute</param>
+        /// <param name="variables">Variables that might/will be in the formula</param>
+        /// <returns>The result of the formula, with the variables substituted in</returns>
+        /// <exception cref="MissingVariableException">Raised when one or more variables in formula don't have a corresponding key in variables</exception>
+        public static double MathParse(this string formula, IDictionary<string, double> variables)
+        {
+            return formula.MathParse(variables, new Regex(@"([a-zA-Z_][a-zA-Z_\d]*)"));
+        }
+
+        /// <summary>
+        /// Parses a string as a mathematical formula and returns the result<br />
+        /// Supported operations (executed in this order):<br />
+        /// Variable substitution<br />
+        /// Nested expressions ()<br />
+        /// Exponents ^<br />
+        /// Multiplication and division * and /<br />
+        /// Addition and subtraction + and -<br />
+        /// </summary>
+        /// <param name="formula">The expression to execute</param>
+        /// <returns>The result of the formula, with the variables substituted in</returns>
+        /// <exception cref="MissingVariableException">Raised when one or more variables is in the formula</exception>
+        public static double MathParse(this string formula)
+        {
+            return formula.MathParse(null);
+        }
+        #endregion
+
+        #region Missing variable exception
+    }
+
+    /// <summary>
+    /// Represents an error in ATEMMethods.ParseStringAsMath when one or more variables are int the formula string, but don't have a corresponding entry in the variables IDictionary
+    /// </summary>
+    [Serializable]
+    public class MissingVariableException : Exception
+    {
+        public MissingVariableException() { }
+        public MissingVariableException(string message) : base(message) { }
+        public MissingVariableException(string message, Exception inner) : base(message, inner) { }
+        protected MissingVariableException(
+          System.Runtime.Serialization.SerializationInfo info,
+          System.Runtime.Serialization.StreamingContext context) : base(info, context) { }
+    }
+
+    public static partial class ATEMMethods
+    {
+        #endregion
+        #endregion
         #endregion
 
         #region Int methods
@@ -474,7 +654,8 @@ namespace ATEM
         }
     }
 
-    public static partial class ATEMMethods {
+    public static partial class ATEMMethods
+    {
         #endregion
 
         #region Dictionary.ToSerializableDictionary
@@ -482,7 +663,7 @@ namespace ATEM
         /// Converts to a SerializableDictionary object
         /// </summary>
         /// <returns>The resulting SerializableDictionary</returns>
-        public static SerializableDictionary<TKey, TValue> ToSerializableDictionary<TKey, TValue> (this Dictionary<TKey, TValue> idictionary)
+        public static SerializableDictionary<TKey, TValue> ToSerializableDictionary<TKey, TValue>(this Dictionary<TKey, TValue> idictionary)
         {
             SerializableDictionary<TKey, TValue> result = new SerializableDictionary<TKey, TValue>();
             List<TKey> keys = new List<TKey>();
@@ -510,7 +691,8 @@ namespace ATEM
         /// Specifies what applicable Overload:ATEMMethods.CopyDirectory overloads should do in the event of destFolderName already existing
         /// </summary>
         [Flags]
-        public enum FolderExistsResponse {
+        public enum FolderExistsResponse
+        {
             /// <summary>
             /// An instance of the IOException class is thrown
             /// </summary>
@@ -552,7 +734,7 @@ namespace ATEM
                 Directory.CreateDirectory(destFolderName);
             }
 
-            foreach(string file in Directory.GetFiles(sourceFolderName))
+            foreach (string file in Directory.GetFiles(sourceFolderName))
             {
                 string filename = file.Split('\\').GetFromLast(0);
                 string new_path = destFolderName + '\\' + filename;
